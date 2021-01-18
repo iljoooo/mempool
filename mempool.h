@@ -5,13 +5,13 @@ class MemoryPool
   public:
     static const size_t SEGMENT_SIZE = 64 * 1024 * 1024;  // 64 MB
     MemoryPool() {
-        m_head = new Segment();
+        m_head = new Block();
     }
 
-    class Segment
+    class Block
     {
       public:
-        Segment() : m_next(NULL), m_allocated(0) {}
+        Block() : m_next(NULL), m_allocated(0) {}
 
         void* allocate(size_t size) {
             void* pointer = (void*)(m_data + m_allocated);
@@ -24,20 +24,20 @@ class MemoryPool
             return SIZE - m_allocated;
         }
 
-        Segment* getNext() {
+        Block* getNext() {
             return m_next;
         }
 
-        void setNext(Segment* next) {
+        void setNext(Block* next) {
             m_next = next;
         }
 
       private:
         static const size_t SIZE = SEGMENT_SIZE
-                                    - sizeof(Segment*)       // m_next
+                                    - sizeof(Block*)       // m_next
                                     - sizeof(unsigned int);  // m_allocated
 
-        Segment*     m_next;
+        Block*     m_next;
         unsigned int m_allocated;
         char         m_data[SIZE];
     };
@@ -49,7 +49,7 @@ class MemoryPool
 
   private:
     void* allocate(size_t size) {
-        Segment* sgmt = m_head;
+        Block* sgmt = m_head;
         while (true) {
             if (sgmt->remains() >= size) {
                 // allocate from current segment
@@ -61,7 +61,7 @@ class MemoryPool
                 sgmt = sgmt->getNext();
             } else {
                 // create new segment
-                Segment* new_sgmt = new Segment();
+                Block* new_sgmt = new Block();
                 new_sgmt->setNext(m_head);
                 m_head = new_sgmt;
 
@@ -70,5 +70,5 @@ class MemoryPool
         }
     }
 
-    Segment* m_head;
+    Block* m_head;
 };
