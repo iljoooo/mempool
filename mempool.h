@@ -37,38 +37,35 @@ class MemoryPool
                                     - sizeof(Block*)       // m_next
                                     - sizeof(unsigned int);  // m_allocated
 
-        Block*     m_next;
+        Block*       m_next;
         unsigned int m_allocated;
         char         m_data[SIZE];
     };
 
     template <typename T>
-    void* get() {
-        return allocate(sizeof(T));
-    }
-
-  private:
-    void* allocate(size_t size) {
-        Block* sgmt = m_head;
+    void* allocate() {
+        size_t size = sizeof(T);
+        Block* block = m_head;
         while (true) {
-            if (sgmt->remains() >= size) {
+            if (block->remains() >= size) {
                 // allocate from current segment
-                return sgmt->allocate(size);
+                return block->allocate(size);
             }
 
-            if (sgmt->getNext() != NULL) {
+            if (block->getNext() != NULL) {
                 // move to  next segment
-                sgmt = sgmt->getNext();
+                block = block->getNext();
             } else {
                 // create new segment
-                Block* new_sgmt = new Block();
-                new_sgmt->setNext(m_head);
-                m_head = new_sgmt;
+                Block* new_block = new Block();
+                new_block->setNext(m_head);
+                m_head = new_block;
 
-                return new_sgmt->allocate(size);
+                return new_block->allocate(size);
             }
         }
     }
 
+  private:
     Block* m_head;
 };

@@ -53,7 +53,7 @@ int main() {
     // memory pool
     start = get_current_time();
     for (int i = 0; i < num_objects; i++) {
-        Test* t = new (mem_pool.get<Test>()) Test(i, ptr_pool);
+        Test* t = new (mem_pool.allocate<Test>()) Test(i, ptr_pool);
         ptr_pool = t;
     }
     elapsed = get_current_time() - start;
